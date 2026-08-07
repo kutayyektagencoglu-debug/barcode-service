@@ -1,31 +1,20 @@
-package com.migros.barcodeservice.model;
+package com.migros.barcodeservice.dto;
 
 import com.migros.barcodeservice.enums.BarcodeType;
-import jakarta.persistence.*;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Entity
-@Table
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
-public class Barcode {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+public class BarcodeResponseDTO {
     private Long id;
-
-    @Column(nullable = false)
+    @Size(min = 4, max = 9)
     private int code;
-
-    @Column(nullable = false)
-    @Enumerated(EnumType.STRING)
     private BarcodeType type;
-
-    @Column(nullable = false, length = 5)
     private String productCode;
 }
