@@ -134,6 +134,9 @@ public class BarcodeService {
 
     //DELETE
     public void deleteBarcode(String productCode) {
+        if(!barcodeRepository.existsByProductCode(productCode)) {
+            throw new IllegalArgumentException("No such barcode with product code of " + productCode + " exists");
+        }
         barcodeRepository.deleteByProductCode(productCode);
     }
 }

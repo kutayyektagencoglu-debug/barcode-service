@@ -10,6 +10,7 @@ import java.util.Optional;
 
 @Repository
 public interface BarcodeRepository extends JpaRepository<Barcode, Long> {
+    boolean existsByProductCode(String productCode);
 
     Optional<Barcode> findByCode(String code);
     List<Barcode> findByProductCode(String productCode);

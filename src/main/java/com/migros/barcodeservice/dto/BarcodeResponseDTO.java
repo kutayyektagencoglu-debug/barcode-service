@@ -17,7 +17,7 @@ public class BarcodeResponseDTO {
     private Long id;
     @Size(min = 4, max = 9)
     @JsonProperty("barcodeCode")
-    private int code;
+    private String code;
     @JsonProperty("barcodeType")
     private BarcodeType type;
     private String productCode;
