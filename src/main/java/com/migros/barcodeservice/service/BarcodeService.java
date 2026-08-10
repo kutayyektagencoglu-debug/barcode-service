@@ -3,10 +3,14 @@ package com.migros.barcodeservice.service;
 import com.migros.barcodeservice.client.ProductClient;
 import com.migros.barcodeservice.dto.BarcodeRequestDTO;
 import com.migros.barcodeservice.dto.BarcodeResponseDTO;
+import com.migros.barcodeservice.dto.ProductDTO;
 import com.migros.barcodeservice.mapper.BarcodeMapper;
 import com.migros.barcodeservice.model.Barcode;
 import com.migros.barcodeservice.repository.BarcodeRepository;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class BarcodeService {
@@ -21,11 +25,50 @@ public class BarcodeService {
     }
 
     //CREATE
-    public BarcodeResponseDTO createBarcode(BarcodeRequestDTO dto) {
-        Barcode barcode = mapper.toEntity(dto);
-        String categoryCode = barcode.getProductCode().substring(0, 2);
-        //Other barcode creation logic
+    public List<BarcodeResponseDTO> createBarcode(BarcodeRequestDTO barcodeDTO) {
+        ProductDTO productDTO = productClient.getProductByCode(barcodeDTO.getProductCode());
+        Barcode barcode = mapper.toEntity(barcodeDTO);
+        List<Barcode> barcodeList = new ArrayList<>();
 
-        return mapper.toResponseDTO(barcode);
+        String categoryCode = productDTO.getCategoryCode();
+        String unit = productDTO.getUnit();
+        switch (categoryCode) {
+            case "MY":
+                if(unit.equals("KILOGRAM")) {
+                    barcodeList.add(createProductBarcode(barcode));
+                    barcodeList.add(createRegisterBarcode(barcode));
+                } else {
+                    barcodeList.add(createProductBarcode(barcode));
+                }
+                break;
+            case "BL":
+                if(unit.equals("KILOGRAM")) {
+                    barcodeList.add(createProductBarcode(barcode));
+                    barcodeList.add(createScaleBarcode(barcode));
+                } else if(unit.equals("NUMBER")) {
+                    barcodeList.add(createRegisterBarcode(barcode));
+                } else {
+                    barcodeList.add(createProductBarcode(barcode));
+                }
+                break;
+            case "MT":
+                barcodeList.add(createScaleBarcode(barcode));
+                break;
+            default:
+                barcodeList.add(createProductBarcode(barcode));
+        }
+        return mapper.toResponseDTOList(barcodeList);
+    }
+
+    public Barcode createProductBarcode(Barcode barcode) {
+
+    }
+
+    public Barcode createRegisterBarcode(Barcode barcode) {
+
+    }
+
+    public Barcode createScaleBarcode(Barcode barcode) {
+
     }
 }
