@@ -95,8 +95,45 @@ public class BarcodeService {
             throw new IllegalStateException("No scale barcodes remaining");
         }
         String codeEnd = String.format("%03d", sequence);
-        String code = barcode.getProductCode() + codeEnd;
+        String codeStart = barcode.getProductCode();
+        String code = codeStart + codeEnd;
         barcode.setCode(code);
         return barcode;
+    }
+
+    //READ ALL
+    public List<BarcodeResponseDTO> getAllBarcodes(){
+        List<Barcode> barcodes = barcodeRepository.findAll();
+        return mapper.toResponseDTOList(barcodes);
+    }
+
+    //READ BY CODE
+    public BarcodeResponseDTO getBarcodeByCode(String code){
+        Barcode barcode = barcodeRepository.findByCode(code)
+                .orElseThrow(() ->  new IllegalArgumentException("Barcode not found: " + code));
+        return mapper.toResponseDTO(barcode);
+    }
+
+    //READ BY PRODUCT CODE
+    public List<BarcodeResponseDTO> getBarcodeByProductCode(String productCode) {
+        List<Barcode> barcodes = barcodeRepository.findByProductCode(productCode);
+        if(barcodes.isEmpty()) {
+            throw new IllegalArgumentException("Barcode not found: " + productCode);
+        }
+        return mapper.toResponseDTOList(barcodes);
+    }
+
+    //READ BY TYPE
+    public List<BarcodeResponseDTO> getBarcodeByType(BarcodeType type) {
+        List<Barcode> barcodes = barcodeRepository.findByType(type);
+        if(barcodes.isEmpty()) {
+            throw new IllegalArgumentException("Barcode not found: " + type);
+        }
+        return mapper.toResponseDTOList(barcodes);
+    }
+
+    //DELETE
+    public void deleteBarcode(String productCode) {
+        barcodeRepository.deleteByProductCode(productCode);
     }
 }

@@ -10,15 +10,10 @@ import java.util.Optional;
 
 @Repository
 public interface BarcodeRepository extends JpaRepository<Barcode, Long> {
-    boolean existsById(Long id);
-    boolean existsByCode(int code);
-    boolean existsByProductCode(String productCode);
 
-    Optional<Barcode> findById(Long id);
-    List<Barcode> findByCode(int code);
+    Optional<Barcode> findByCode(String code);
     List<Barcode> findByProductCode(String productCode);
     List<Barcode> findByType(BarcodeType type);
 
-    void deleteById(Long id);
     void deleteByProductCode(String productCode);
 }
