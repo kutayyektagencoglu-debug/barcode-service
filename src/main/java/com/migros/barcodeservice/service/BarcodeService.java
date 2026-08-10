@@ -30,9 +30,9 @@ public class BarcodeService {
     }
 
     //CREATE
-    public List<BarcodeResponseDTO> createBarcode(BarcodeRequestDTO barcodeDTO) {
-        ProductDTO productDTO = productClient.getProductByCode(barcodeDTO.getProductCode());
-        Barcode barcode = mapper.toEntity(barcodeDTO);
+    public List<BarcodeResponseDTO> createBarcode(BarcodeRequestDTO barcodeRequestDTO) {
+        ProductDTO productDTO = productClient.getProductByCode(barcodeRequestDTO.getProductCode());
+        Barcode barcode = mapper.toEntity(barcodeRequestDTO);
         List<Barcode> barcodeList = new ArrayList<>();
 
         String categoryCode = productDTO.getCategoryCode();
