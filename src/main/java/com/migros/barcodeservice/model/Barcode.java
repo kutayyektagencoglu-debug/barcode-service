@@ -19,8 +19,8 @@ public class Barcode {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column
-    private int code;
+    @Column(unique = true)
+    private String code;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)

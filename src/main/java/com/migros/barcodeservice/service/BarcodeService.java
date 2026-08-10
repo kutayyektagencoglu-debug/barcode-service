@@ -4,9 +4,11 @@ import com.migros.barcodeservice.client.ProductClient;
 import com.migros.barcodeservice.dto.BarcodeRequestDTO;
 import com.migros.barcodeservice.dto.BarcodeResponseDTO;
 import com.migros.barcodeservice.dto.ProductDTO;
+import com.migros.barcodeservice.enums.BarcodeType;
 import com.migros.barcodeservice.mapper.BarcodeMapper;
 import com.migros.barcodeservice.model.Barcode;
 import com.migros.barcodeservice.repository.BarcodeRepository;
+import com.migros.barcodeservice.repository.BarcodeSequenceRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -15,11 +17,14 @@ import java.util.List;
 @Service
 public class BarcodeService {
     private final BarcodeRepository barcodeRepository;
+    private final BarcodeSequenceRepository barcodeSequenceRepository;
     private final BarcodeMapper mapper;
     private final ProductClient productClient;
 
-    public BarcodeService(BarcodeRepository barcodeRepository, BarcodeMapper mapper, ProductClient productClient) {
+    public BarcodeService(BarcodeRepository barcodeRepository,BarcodeSequenceRepository barcodeSequenceRepository,
+                          BarcodeMapper mapper, ProductClient productClient) {
         this.barcodeRepository = barcodeRepository;
+        this.barcodeSequenceRepository = barcodeSequenceRepository;
         this.mapper = mapper;
         this.productClient = productClient;
     }
@@ -61,14 +66,37 @@ public class BarcodeService {
     }
 
     public Barcode createProductBarcode(Barcode barcode) {
+        barcode.setType(BarcodeType.PRODUCT);
 
+        Long sequence = barcodeSequenceRepository.nextProductBarcode();
+        if(sequence > 999999999) {
+            throw new IllegalStateException("No product barcodes remaining");
+        }
+        String code = String.format("%09d", sequence);
+        barcode.setCode(code);
+        return barcode;
     }
 
     public Barcode createRegisterBarcode(Barcode barcode) {
-
+        barcode.setType(BarcodeType.REGISTER);
+        Long sequence = barcodeSequenceRepository.nextProductBarcode();
+        if(sequence > 9999) {
+            throw new IllegalStateException("No register barcodes remaining");
+        }
+        String code = String.format("%04d", sequence);
+        barcode.setCode(code);
+        return barcode;
     }
 
     public Barcode createScaleBarcode(Barcode barcode) {
-
+        barcode.setType(BarcodeType.SCALE);
+        Long sequence = barcodeSequenceRepository.nextProductBarcode();
+        if(sequence > 999) {
+            throw new IllegalStateException("No scale barcodes remaining");
+        }
+        String codeEnd = String.format("%03d", sequence);
+        String code = barcode.getProductCode() + codeEnd;
+        barcode.setCode(code);
+        return barcode;
     }
 }
