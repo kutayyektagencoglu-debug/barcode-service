@@ -1,5 +1,6 @@
 package com.migros.barcodeservice.service;
 
+import com.migros.barcodeservice.client.ProductClient;
 import com.migros.barcodeservice.dto.BarcodeRequestDTO;
 import com.migros.barcodeservice.dto.BarcodeResponseDTO;
 import com.migros.barcodeservice.mapper.BarcodeMapper;
@@ -11,10 +12,12 @@ import org.springframework.stereotype.Service;
 public class BarcodeService {
     private final BarcodeRepository barcodeRepository;
     private final BarcodeMapper mapper;
+    private final ProductClient productClient;
 
-    public BarcodeService(BarcodeRepository barcodeRepository, BarcodeMapper mapper) {
+    public BarcodeService(BarcodeRepository barcodeRepository, BarcodeMapper mapper, ProductClient productClient) {
         this.barcodeRepository = barcodeRepository;
         this.mapper = mapper;
+        this.productClient = productClient;
     }
 
     //CREATE
