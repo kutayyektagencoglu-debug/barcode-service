@@ -4,6 +4,7 @@ import com.migros.barcodeservice.dto.BarcodeRequestDTO;
 import com.migros.barcodeservice.dto.BarcodeResponseDTO;
 import com.migros.barcodeservice.enums.BarcodeType;
 import com.migros.barcodeservice.service.BarcodeService;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,7 +21,7 @@ public class BarcodeController {
 
     //CREATE
     @PostMapping
-    public List<BarcodeResponseDTO> createBarcode(BarcodeRequestDTO barcodeRequestDTO) {
+    public List<BarcodeResponseDTO> createBarcode(@Valid @RequestBody BarcodeRequestDTO barcodeRequestDTO) {
         return barcodeService.createBarcode(barcodeRequestDTO);
     }
 

@@ -31,7 +31,11 @@ public class BarcodeService {
         Barcode barcode = mapper.toEntity(barcodeRequestDTO);
         List<Barcode> barcodeList = new ArrayList<>();
 
-        String categoryCode = barcode.getProductCode().substring(0, 2);
+        String productCode = barcode.getProductCode();
+        if(productCode == null || productCode.isEmpty()) {
+            throw new IllegalArgumentException("product code is null or empty");
+        }
+        String categoryCode = productCode.substring(0, 2);
         switch (categoryCode) {
             case "MY":
                 handleMyCategory(barcodeList, barcode, unit);
@@ -45,6 +49,8 @@ public class BarcodeService {
             default:
                 barcodeList.add(createProductBarcode(barcode));
         }
+        barcodeRepository.saveAll(barcodeList);
+
         return mapper.toResponseDTOList(barcodeList);
     }
     private void handleMyCategory(List<Barcode> barcodeList, Barcode barcode, String unit) {
@@ -59,7 +65,7 @@ public class BarcodeService {
         if(unit.equals("KILOGRAM")) {
             barcodeList.add(createProductBarcode(barcode));
             barcodeList.add(createScaleBarcode(barcode));
-        } else if(unit.equals("ADET")) {
+        } else if(unit.equals("NUMBER")) {
             barcodeList.add(createRegisterBarcode(barcode));
         } else {
             barcodeList.add(createProductBarcode(barcode));
