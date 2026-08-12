@@ -13,4 +13,5 @@ import lombok.Setter;
 public class BarcodeRequestDTO {
     @Size(min = 5, max = 5)
     private String productCode;
+    private String unit;
 }

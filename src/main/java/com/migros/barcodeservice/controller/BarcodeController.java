@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/barcode-service")
+@RequestMapping("/api/v1/barcode")
 public class BarcodeController {
 
     private final BarcodeService barcodeService;

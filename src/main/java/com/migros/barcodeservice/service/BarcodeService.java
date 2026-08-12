@@ -1,9 +1,7 @@
 package com.migros.barcodeservice.service;
 
-import com.migros.barcodeservice.client.ProductClient;
 import com.migros.barcodeservice.dto.BarcodeRequestDTO;
 import com.migros.barcodeservice.dto.BarcodeResponseDTO;
-import com.migros.barcodeservice.dto.ProductDTO;
 import com.migros.barcodeservice.enums.BarcodeType;
 import com.migros.barcodeservice.mapper.BarcodeMapper;
 import com.migros.barcodeservice.model.Barcode;
@@ -19,50 +17,53 @@ public class BarcodeService {
     private final BarcodeRepository barcodeRepository;
     private final BarcodeSequenceRepository barcodeSequenceRepository;
     private final BarcodeMapper mapper;
-    private final ProductClient productClient;
 
     public BarcodeService(BarcodeRepository barcodeRepository,BarcodeSequenceRepository barcodeSequenceRepository,
-                          BarcodeMapper mapper, ProductClient productClient) {
+                          BarcodeMapper mapper) {
         this.barcodeRepository = barcodeRepository;
         this.barcodeSequenceRepository = barcodeSequenceRepository;
         this.mapper = mapper;
-        this.productClient = productClient;
     }
 
     //CREATE
     public List<BarcodeResponseDTO> createBarcode(BarcodeRequestDTO barcodeRequestDTO) {
-        ProductDTO productDTO = productClient.getProductByCode(barcodeRequestDTO.getProductCode());
+        String unit = barcodeRequestDTO.getUnit();
         Barcode barcode = mapper.toEntity(barcodeRequestDTO);
         List<Barcode> barcodeList = new ArrayList<>();
 
-        String categoryCode = productDTO.getCategoryCode();
-        String unit = productDTO.getUnit();
+        String categoryCode = barcode.getProductCode().substring(0, 2);
         switch (categoryCode) {
             case "MY":
-                if(unit.equals("KILOGRAM")) {
-                    barcodeList.add(createProductBarcode(barcode));
-                    barcodeList.add(createRegisterBarcode(barcode));
-                } else {
-                    barcodeList.add(createProductBarcode(barcode));
-                }
+                handleMyCategory(barcodeList, barcode, unit);
                 break;
             case "BL":
-                if(unit.equals("KILOGRAM")) {
-                    barcodeList.add(createProductBarcode(barcode));
-                    barcodeList.add(createScaleBarcode(barcode));
-                } else if(unit.equals("NUMBER")) {
-                    barcodeList.add(createRegisterBarcode(barcode));
-                } else {
-                    barcodeList.add(createProductBarcode(barcode));
-                }
+                handleBlCategory(barcodeList, barcode, unit);
                 break;
-            case "MT":
+            case "ET":
                 barcodeList.add(createScaleBarcode(barcode));
                 break;
             default:
                 barcodeList.add(createProductBarcode(barcode));
         }
         return mapper.toResponseDTOList(barcodeList);
+    }
+    private void handleMyCategory(List<Barcode> barcodeList, Barcode barcode, String unit) {
+        if(unit.equals("KILOGRAM")) {
+            barcodeList.add(createProductBarcode(barcode));
+            barcodeList.add(createRegisterBarcode(barcode));
+        } else {
+            barcodeList.add(createProductBarcode(barcode));
+        }
+    }
+    private void handleBlCategory(List<Barcode> barcodeList, Barcode barcode, String unit) {
+        if(unit.equals("KILOGRAM")) {
+            barcodeList.add(createProductBarcode(barcode));
+            barcodeList.add(createScaleBarcode(barcode));
+        } else if(unit.equals("ADET")) {
+            barcodeList.add(createRegisterBarcode(barcode));
+        } else {
+            barcodeList.add(createProductBarcode(barcode));
+        }
     }
 
     public Barcode createProductBarcode(Barcode barcode) {
