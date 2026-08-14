@@ -7,6 +7,9 @@ import com.migros.barcodeservice.mapper.BarcodeMapper;
 import com.migros.barcodeservice.model.Barcode;
 import com.migros.barcodeservice.repository.BarcodeRepository;
 import com.migros.barcodeservice.repository.BarcodeSequenceRepository;
+import com.migros.commonerror.exception.ApiException;
+import com.migros.commonerror.exception.BusinessException;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -33,7 +36,7 @@ public class BarcodeService {
 
         String productCode = barcode.getProductCode();
         if(productCode == null || productCode.isEmpty()) {
-            throw new IllegalArgumentException("product code is null or empty");
+            throw new ApiException("PRODUCT_CODE_MISSING", "Product code is null or empty", 400);
         }
         String categoryCode = productCode.substring(0, 2);
         switch (categoryCode) {
@@ -44,10 +47,10 @@ public class BarcodeService {
                 handleBlCategory(barcodeList, barcode, unit);
                 break;
             case "ET":
-                barcodeList.add(createScaleBarcode(barcode));
+                barcodeList.add(createScaleBarcode(new Barcode(barcode)));
                 break;
             default:
-                barcodeList.add(createProductBarcode(barcode));
+                barcodeList.add(createProductBarcode(new Barcode(barcode)));
         }
         barcodeRepository.saveAll(barcodeList);
 
@@ -55,20 +58,20 @@ public class BarcodeService {
     }
     private void handleMyCategory(List<Barcode> barcodeList, Barcode barcode, String unit) {
         if(unit.equals("KILOGRAM")) {
-            barcodeList.add(createProductBarcode(barcode));
-            barcodeList.add(createRegisterBarcode(barcode));
+            barcodeList.add(createProductBarcode(new Barcode(barcode)));
+            barcodeList.add(createRegisterBarcode(new Barcode(barcode)));
         } else {
-            barcodeList.add(createProductBarcode(barcode));
+            barcodeList.add(createProductBarcode(new Barcode(barcode)));
         }
     }
     private void handleBlCategory(List<Barcode> barcodeList, Barcode barcode, String unit) {
         if(unit.equals("KILOGRAM")) {
-            barcodeList.add(createProductBarcode(barcode));
-            barcodeList.add(createScaleBarcode(barcode));
+            barcodeList.add(createProductBarcode(new Barcode(barcode)));
+            barcodeList.add(createScaleBarcode(new Barcode(barcode)));
         } else if(unit.equals("NUMBER")) {
-            barcodeList.add(createRegisterBarcode(barcode));
+            barcodeList.add(createRegisterBarcode(new Barcode(barcode)));
         } else {
-            barcodeList.add(createProductBarcode(barcode));
+            barcodeList.add(createProductBarcode(new Barcode(barcode)));
         }
     }
 
@@ -77,7 +80,7 @@ public class BarcodeService {
 
         Long sequence = barcodeSequenceRepository.nextProductBarcode();
         if(sequence > 999999999) {
-            throw new IllegalStateException("No product barcodes remaining");
+            throw new BusinessException("BARCODE_SEQUENCE_EXHAUSTED", "No product barcodes remaining", 422);
         }
         String code = String.format("%09d", sequence);
         barcode.setCode(code);
@@ -86,9 +89,9 @@ public class BarcodeService {
 
     public Barcode createRegisterBarcode(Barcode barcode) {
         barcode.setType(BarcodeType.REGISTER);
-        Long sequence = barcodeSequenceRepository.nextProductBarcode();
+        Long sequence = barcodeSequenceRepository.nextRegisterBarcode();
         if(sequence > 9999) {
-            throw new IllegalStateException("No register barcodes remaining");
+            throw new BusinessException("BARCODE_SEQUENCE_EXHAUSTED", "No register barcodes remaining", 422);
         }
         String code = String.format("%04d", sequence);
         barcode.setCode(code);
@@ -97,9 +100,9 @@ public class BarcodeService {
 
     public Barcode createScaleBarcode(Barcode barcode) {
         barcode.setType(BarcodeType.SCALE);
-        Long sequence = barcodeSequenceRepository.nextProductBarcode();
+        Long sequence = barcodeSequenceRepository.nextScaleBarcode();
         if(sequence > 999) {
-            throw new IllegalStateException("No scale barcodes remaining");
+            throw new BusinessException("BARCODE_SEQUENCE_EXHAUSTED", "No scale barcodes remaining", 422);
         }
         String codeEnd = String.format("%03d", sequence);
         String codeStart = barcode.getProductCode();
@@ -117,7 +120,7 @@ public class BarcodeService {
     //READ BY CODE
     public BarcodeResponseDTO getBarcodeByCode(String code){
         Barcode barcode = barcodeRepository.findByCode(code)
-                .orElseThrow(() ->  new IllegalArgumentException("Barcode not found: " + code));
+                .orElseThrow(() ->  new BusinessException("BARCODE_NOT_FOUND", "Barcode not found: " + code, 404));
         return mapper.toResponseDTO(barcode);
     }
 
@@ -125,7 +128,7 @@ public class BarcodeService {
     public List<BarcodeResponseDTO> getBarcodeByProductCode(String productCode) {
         List<Barcode> barcodes = barcodeRepository.findByProductCode(productCode);
         if(barcodes.isEmpty()) {
-            throw new IllegalArgumentException("Barcode not found: " + productCode);
+            throw new BusinessException("BARCODE_NOT_FOUND", "Barcode not found: " + productCode, 404);
         }
         return mapper.toResponseDTOList(barcodes);
     }
@@ -134,15 +137,16 @@ public class BarcodeService {
     public List<BarcodeResponseDTO> getBarcodeByType(BarcodeType type) {
         List<Barcode> barcodes = barcodeRepository.findByType(type);
         if(barcodes.isEmpty()) {
-            throw new IllegalArgumentException("Barcode not found: " + type);
+            throw new BusinessException("BARCODE_NOT_FOUND", "Barcode not found: " + type, 404);
         }
         return mapper.toResponseDTOList(barcodes);
     }
 
     //DELETE
+    @Transactional
     public void deleteBarcode(String productCode) {
         if(!barcodeRepository.existsByProductCode(productCode)) {
-            throw new IllegalArgumentException("No such barcode with product code of " + productCode + " exists");
+            throw new BusinessException("BARCODE_NOT_FOUND", "No such barcode with product code of " + productCode + " exists", 404);
         }
         barcodeRepository.deleteByProductCode(productCode);
     }

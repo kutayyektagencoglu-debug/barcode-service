@@ -1,5 +1,6 @@
 package com.migros.barcodeservice.model;
 
+import com.migros.barcodeservice.dto.BarcodeRequestDTO;
 import com.migros.barcodeservice.enums.BarcodeType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -28,4 +29,10 @@ public class Barcode {
 
     @Column(nullable = false, length = 5)
     private String productCode;
+
+    public Barcode(Barcode other) {
+        this.code = other.getCode();
+        this.type = other.getType();
+        this.productCode = other.getProductCode();
+    }
 }

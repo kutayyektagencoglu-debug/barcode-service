@@ -92,6 +92,13 @@
             <version>2.5.0</version>
         </dependency>
 
+        <!-- Error Handling -->
+        <dependency>
+            <groupId>com.migros</groupId>
+            <artifactId>common-error</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+
     </dependencies>
 
     <dependencyManagement>
