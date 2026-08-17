@@ -30,15 +30,15 @@ public class BarcodeService {
 
     //CREATE
     public List<BarcodeResponseDTO> createBarcode(BarcodeRequestDTO barcodeRequestDTO) {
-        String unit = barcodeRequestDTO.getUnit();
         Barcode barcode = mapper.toEntity(barcodeRequestDTO);
         List<Barcode> barcodeList = new ArrayList<>();
 
         String productCode = barcode.getProductCode();
-        if(productCode == null || productCode.isEmpty()) {
-            throw new ApiException("PRODUCT_CODE_MISSING", "Product code is null or empty", 400);
+        if(productCode == null || productCode.length() != 5) {
+            throw new ApiException("PRODUCT_CODE_INVALID", "Product code is invalid (it needs to contain 5 characters)", 400);
         }
         String categoryCode = productCode.substring(0, 2);
+        String unit = barcodeRequestDTO.getUnit();
         switch (categoryCode) {
             case "MY":
                 handleMyCategory(barcodeList, barcode, unit);
@@ -56,6 +56,7 @@ public class BarcodeService {
 
         return mapper.toResponseDTOList(barcodeList);
     }
+
     private void handleMyCategory(List<Barcode> barcodeList, Barcode barcode, String unit) {
         if(unit.equals("KILOGRAM")) {
             barcodeList.add(createProductBarcode(new Barcode(barcode)));
