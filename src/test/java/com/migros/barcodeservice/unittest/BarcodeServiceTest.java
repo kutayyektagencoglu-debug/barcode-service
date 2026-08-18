@@ -321,4 +321,25 @@ public class BarcodeServiceTest {
         verify(barcodeRepository).saveAll(anyList());
     }
 
+    @Test
+    void deleteBarcodeThrowsWhenProductCodeNotFound () {
+        String productCode = "TS001";
+
+        when(barcodeRepository.existsByProductCode(productCode)).thenReturn(false);
+
+        assertThrows(BusinessException.class, () -> barcodeService.deleteBarcode(productCode));
+    }
+
+    @Test
+    void deleteBarcodeSuccess() {
+        String productCode = "TS001";
+
+        when(barcodeRepository.existsByProductCode(productCode)).thenReturn(true);
+
+        barcodeService.deleteBarcode(productCode);
+
+        verify(barcodeRepository).deleteByProductCode(productCode);
+
+    }
+
 }
