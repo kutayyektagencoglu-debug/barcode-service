@@ -1,0 +1,3 @@
+CREATE SEQUENCE product_barcode_sequence START WITH 1 INCREMENT BY 1;
+CREATE SEQUENCE register_barcode_sequence START WITH 1 INCREMENT BY 1;
+CREATE SEQUENCE scale_barcode_sequence START WITH 1 INCREMENT BY 1;
